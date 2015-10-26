@@ -903,13 +903,31 @@ class medoo
 		return $query ? 0 + $query->fetchColumn() : false;
 	}
 
+	public function beginTransaction() {
+		$this->pdo->beginTransaction();
+	}
+
+	public function rollBack() {
+		$this->pdo->rollBack();
+	}
+
+	public function commit() {
+		$this->pdo->commit();
+	}
+
 	public function action($actions)
 	{
 		if (is_callable($actions))
 		{
 			$this->pdo->beginTransaction();
 
-			$result = $actions($this);
+			try {
+				$result = $actions($this);
+			} catch (Exception $e) {
+				// Roll back automatically
+				$this->pdo->rollBack();
+				throw $e;
+			}
 
 			if ($result === false)
 			{
